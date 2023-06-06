@@ -1,0 +1,104 @@
+
+package com.mycompany.huffmancoding;
+
+import java.util.*;
+
+class Node implements Comparable<Node> {
+    char character;
+    int frequency;
+    Node left, right;
+
+    public Node(char character, int frequency, Node left, Node right) {
+        this.character = character;
+        this.frequency = frequency;
+        this.left = left;
+        this.right = right;
+    }
+
+    public boolean isLeaf() {
+        return left == null && right == null;
+    }
+
+    public int compareTo(Node node) {
+        return frequency - node.frequency;
+    }
+}
+
+public class HuffmanCoding {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the input string: ");
+        String input = scanner.nextLine();
+        scanner.close();
+        
+        Map<Character, Integer> frequencyMap = getFrequencyMap(input);
+        Node root = buildHuffmanTree(frequencyMap);
+        Map<Character, String> codeTable = generateCodeTable(root);
+        int encodedLength = printHuffmanEncodedVersion(input, codeTable);
+        printFrequencyTable(frequencyMap);
+        printCodeTable(codeTable);
+        System.out.println("Encoded string length: " + encodedLength);
+    }
+
+    private static Map<Character, Integer> getFrequencyMap(String input) {
+        Map<Character, Integer> frequencyMap = new HashMap<>();
+        for (char c : input.toCharArray()) {
+            frequencyMap.put(c, frequencyMap.getOrDefault(c, 0) + 1);
+        }
+        return frequencyMap;
+    }
+
+    private static Node buildHuffmanTree(Map<Character, Integer> frequencyMap) {
+        PriorityQueue<Node> queue = new PriorityQueue<>();
+        for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
+            queue.offer(new Node(entry.getKey(), entry.getValue(), null, null));
+        }
+        while (queue.size() > 1) {
+            Node left = queue.poll();
+            Node right = queue.poll();
+            Node parent = new Node('\0', left.frequency + right.frequency, left, right);
+            queue.offer(parent);
+        }
+        return queue.poll();
+    }
+
+    private static Map<Character, String> generateCodeTable(Node root) {
+        Map<Character, String> codeTable = new HashMap<>();
+        generateCodeTableHelper(root, "", codeTable);
+        return codeTable;
+    }
+
+    private static void generateCodeTableHelper(Node node, String code, Map<Character, String> codeTable) {
+        if (node == null) {
+            return;
+        }
+        if (node.isLeaf()) {
+            codeTable.put(node.character, code);
+        }
+        generateCodeTableHelper(node.left, code + "0", codeTable);
+        generateCodeTableHelper(node.right, code + "1", codeTable);
+    }
+
+    private static int printHuffmanEncodedVersion(String input, Map<Character, String> codeTable) {
+        StringBuilder encoded = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            encoded.append(codeTable.get(c));
+        }
+        System.out.println("Encoded string: " + encoded);
+        return encoded.length();
+    }
+
+    private static void printFrequencyTable(Map<Character, Integer> frequencyMap) {
+        System.out.println("Frequency Table:");
+        for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue());
+        }
+    }
+
+    private static void printCodeTable(Map<Character, String> codeTable) {
+        System.out.println("Code Table:");
+        for (Map.Entry<Character, String> entry : codeTable.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue());
+        }
+    }
+}
